@@ -2,21 +2,32 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 
-const userSchema = new mongoose.Schema({ 
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true, 
+        required: true,
         trim: true
-    }, 
+    },
     email: {
         type: String,
         unique: true,
-        require: true,
-        trim: true, 
+        required: true,
+        trim: true,
         lowercase: true,
         validate(value) {
-            if(!validator.isEmail(value)) {
+            if (!validator.isEmail(value)) {
                 throw new Error('Email is invalid')
+            }
+        }
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 7,
+        trim: true,
+        validate(value) {
+            if (value.toLowerCase().includes('password')) {
+                throw new Error('Password cannot contain "password"')
             }
         }
     },
@@ -24,20 +35,8 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         validate(value) {
-            if(value < 0) {
-                throw new Error('Age must be a positive number.')
-            }
-        }
-    },
-    password: {
-        type: String,
-        trim: true,
-        lowercase: true,
-        required: true,
-        minlength: 7,
-        validate(value) {
-            if(value.toLowerCase().includes("password")) {
-                throw new Error("Password can't be 'password'.")
+            if (value < 0) {
+                throw new Error('Age must be a postive number')
             }
         }
     }
@@ -51,7 +50,6 @@ userSchema.statics.findByCredentials = async (email, password) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password)
-    console.log(isMatch)
 
     if (!isMatch) {
         throw new Error('Invalid password')
@@ -60,15 +58,15 @@ userSchema.statics.findByCredentials = async (email, password) => {
     return user
 }
 
-//Hash the plain text password before saving
+// Hash the plain text password before saving
 userSchema.pre('save', async function (next) {
     const user = this
 
-    if(user.isModified('password')) {
+    if (user.isModified('password')) {
         user.password = await bcrypt.hash(user.password, 8)
     }
 
-    next() 
+    next()
 })
 
 const User = mongoose.model('User', userSchema)

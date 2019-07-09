@@ -11,12 +11,10 @@ app.use(userRouter)
 app.use(taskRouter)
 
 app.listen(port, () => {
-    console.log(port + ' is aliiiiiiiive!')
+    console.log('Server is up on port ' + port)
 })
 
-
-const bcrypt = require ('bcryptjs')
-
+const bcrypt = require('bcryptjs')
 
 const myFunction = async () => {
     const password = 'Red12345!'
